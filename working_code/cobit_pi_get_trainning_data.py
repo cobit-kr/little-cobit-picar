@@ -10,6 +10,7 @@ import cv2
 import numpy as np
 import sys
 import os 
+import argparse
 
 outputFrame = None
 lock = threading.Lock()
@@ -53,9 +54,10 @@ def collect_data():
         frame2 = cv2.resize(frame, (320, 240), interpolation=cv2.INTER_CUBIC)
         gray = cv2.cvtColor(frame2, cv2.COLOR_BGR2GRAY)
         gray_half = gray[120:240, : ]
+        gray_flip = cv2.flip(gray_half, 0)
 
         with lock:
-            outputFrame = gray_half.copy()
+            outputFrame = gray_flip.copy()
 
 def serial_process():
     global lock, outputFrame, run_on
@@ -133,7 +135,15 @@ def serial_process():
 
 app = Flask(__name__)
 
-vs = VideoStream(src=0).start()
+# construct the argument parse and parse the arguments
+ap = argparse.ArgumentParser()
+ap.add_argument("-p", "--picamera", type=int, default=-1,
+	help="whether or not the Raspberry Pi camera should be used")
+args = vars(ap.parse_args())
+
+vs = VideoStream(usePiCamera=args["picamera"] > 0).start()
+#vs = VideoStream(src=0).start()
+
 time.sleep(2.0)
 
 @app.route('/')
