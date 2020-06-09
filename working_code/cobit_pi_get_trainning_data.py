@@ -28,8 +28,6 @@ TIMEOUT= 0.1
 
 img_size = 320*120
 
-run_on = False
-
 def find_comport(serial, pid, vid, baud):
     ports = list(list_ports.comports())
     print('scanning ports')
@@ -60,7 +58,7 @@ def collect_data():
             outputFrame = gray_flip.copy()
 
 def serial_process():
-    global lock, outputFrame, run_on
+    global lock, outputFrame
     seq = serial.Serial(
         baudrate=115200,
         parity=serial.PARITY_NONE,
@@ -90,7 +88,7 @@ def serial_process():
         #time.sleep(0.05)
         if seq.isOpen() == True:  
             try:
-                if seq.inWaiting() and run_on is True:
+                if seq.inWaiting():
                     try:
                         cmd = seq.readline()
                         cmd_rev = cmd[0]
@@ -171,24 +169,10 @@ def video_feed():
     return Response(generate(),
         mimetype='multipart/x-mixed-replace; boundary=frame')
 
-@app.route('/start', methods=['POST'])
-def strat_mov_n_record():
-    global run_on
-    print("Start maqueen move and recording")
-    run_on = True
-    return render_template('index.html')
-
-@app.route('/stop', methods=['POST'])
-def stop_mov_n_record():
-    global run_on
-    print("Stop and save data set")
-    run_on = False
-    return render_template('index.html')
-
 @app.route('/terminate', methods=['POST'])
 def terminate_script():
     print("Terminate script")
-    sys.exit()
+    exit()
     return render_template('index.html')
 
 if __name__ == '__main__':
